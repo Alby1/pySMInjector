@@ -1,6 +1,5 @@
-docs.lnk
-exe.lnk
-sminject.exe
+*.lnk
+*.exe
 axis_settings.json
 buttons_settings.json
 settings.txt
