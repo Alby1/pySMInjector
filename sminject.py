@@ -9,7 +9,7 @@ import time
 import pygame
 from decimal import Context
 import json
-
+import sys
 
 # TODO:
 # buttons support:
@@ -23,7 +23,8 @@ import json
 # \ show axis name instead of index (what is shown for unnamed axis, index? should it show both every time?)
 # * show buttons (all of them but change pressed ones with different color or just pressed ones? do I show the button name, index, both or index only for unnamed ones?)
 # - set max axis range (real_max and virtual_max, just like type?)
-# - "You have no controllers connected" screen
+# \ "You have no controllers connected" screen
+# - SHOW_ONLY_ACTIVE setting
 
 # polish up code:
 # | put "everything" in a function and call it in a try catch in a while running loop whereas running is the same variable in the inside while loop, so that the program does not quit on error but keeps rebooting (is it a good idea?)
@@ -156,14 +157,32 @@ def pygame_main():
     surface = pygame.display.set_mode((800, 600))
     clock = pygame.time.Clock()
     global running
-    running = True
  
     font = pygame.font.Font(None, 20)
+
     linesize = font.get_linesize()
     joysticks = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())]
+    running = len(joysticks) > 0
+
     for joy in joysticks:
         joy.init()
  
+    if not running:
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            surface.fill((0,0,0))
+            position = [10, 10]
+            image = font.render("No devices connected, connect a device and restart.", 1, (0,200,0))
+            surface.blit(image, position)
+
+            pygame.display.flip()
+            clock.tick(5)
+            
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -189,19 +208,32 @@ def pygame_main():
                     image = font.render('{0}: push'.format(i), 1, (0,200,0))
                     surface.blit(image, position)
                     position[1] += linesize"""
-            
+            image = font.render("Axis: ", 1, (0,200,0))
+            surface.blit(image, position)
+            position[1] += linesize
             for i in range(joy.get_numaxes()):
                 j = scrolled_axis
+                red = 0
+                green = 200
                 if(axis[j].raw_value != joy.get_axis(i)):
                     axis[j].update_value(joy.get_axis(i))
+                    red = 200
+                    green = 0
                     if(axis[j].channel >= 0):
                         packet = axis[j].create_send_packet()
                         axis[j].send(packet)
-                image = font.render(f'{axis[j].name if axis[j].name != "" else i}: {axis[j].value}', 1, (0,200,0))
+
+                image = font.render(f'{i}{" - " if axis[j].name != "" else ""}{axis[j].name if axis[j].name != "" else ""}{" - " if axis[j].channel >= 0 else ""}{axis[j].channel if axis[j].channel >= 0 else ""}: {axis[j].value}', 1, (red,green,0))
+                
                 surface.blit(image, position)
                 position[1] += linesize
                 scrolled_axis += 1
 
+
+            position[1] += linesize
+            image = font.render("Buttons: ", 1, (0,200,0))
+            surface.blit(image, position)
+            position[1] += linesize
             for i in range(joy.get_numbuttons()):
                 j = scrolled_buttons
                 if(buttons[j].value != joy.get_button(i)):
@@ -209,11 +241,19 @@ def pygame_main():
                     if(buttons[j].channel >= 0):
                         packet = buttons[j].create_send_packet()
                         buttons[j].send(packet)
-                image = font.render(f'{buttons[j].name if buttons[j].name != "" else i}: {buttons[j].value}', 1, (0,200,0))
+
+                red = 0
+                green = 200
+                if(bool(buttons[j].value)):
+                    red = 200
+                    green = 0
+
+                image = font.render(f'{buttons[j].name if buttons[j].name != "" else i}', 1, (red,green,0))
                 surface.blit(image, position)
                 position[1] += linesize
                 scrolled_buttons += 1
-
+            
+            position[1] += linesize
 
         global fixups_index
         fixups_index = 0
@@ -221,24 +261,10 @@ def pygame_main():
         clock.tick(20)
  
     pygame.quit()
- 
 
 
 
 class Axis:
-    plt_axis = 0
-    plt_slider = 0
-    plt_bar_axis = 0
-    id = 0
-    channel = 0
-    raw_value = 0
-    value = 0
-    slider_minimum = 0
-    slider_maximum = 0
-    name = ''
-    virtual_type = ''
-    real_type = ''
-
     def update(self, val):
         self.value = val
         print(f'{self.id}: {val}')
@@ -303,10 +329,15 @@ class Axis:
         self.virtual_type = virtual_type
         self.real_type = real_type
 
+        self.value = 0
+        self.raw_value = 0
+
         if name == 'null':
             name = f'Axis {id}:'
         self.name = name
 
+        self.slider_minimum = 0
+        self.slider_maximum = 0
         self.type_selector()
     
         self.plt_axis = plt.axes([0.25, 0.1*id, 0.65, 0.03])
@@ -316,14 +347,13 @@ class Axis:
         global fig
         self.plt_bar_axis = fig.add_subplot(adjustable= 'box', aspect=0.3)
 
+        
+
     def __str__(self):
         return f'Axis n.{self.id} {self.value}'
 
 
 class Button:
-    name = ''
-    channel = -1
-    value = False
     
     def __init__(self, name: str = '', channel: int = -1, value: int = 0):
         self.name = name
@@ -365,8 +395,6 @@ def main():
 
     buttons_channels = read_buttons_json('channels')
     buttons_labels = read_buttons_json('labels')
-
-
 
     pygame.init()
 
