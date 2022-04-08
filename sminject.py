@@ -52,20 +52,20 @@ def startup():
 
 
 
-"""maxX = 0
-maxY = 0
-while True:
-    mP = mouse.get_position()
-    print(mP)
-    x = mP[0]
-    y  = mP[1]
-    maxX = max(maxX, x)
-    maxY = max(maxY, y)
+# maxX = 0
+# maxY = 0
+# while True:
+#     mP = mouse.get_position()
+#     print(mP)
+#     x = mP[0]
+#     y  = mP[1]
+#     maxX = max(maxX, x)
+#     maxY = max(maxY, y)
 
 
-    sock.sendto(struct.pack(">BId", 1, 6, 1 - x / (maxX / 2)), (UDP_IP, UDP_PORT))
-    sock.sendto(struct.pack(">BId", 1, 5, 1 - y / (maxY / 2)), (UDP_IP, UDP_PORT))
-    time.sleep(0.1)"""
+#     sock.sendto(struct.pack(">BId", 1, 6, 1 - x / (maxX / 2)), (UDP_IP, UDP_PORT))
+#     sock.sendto(struct.pack(">BId", 1, 5, 1 - y / (maxY / 2)), (UDP_IP, UDP_PORT))
+#     time.sleep(0.1)
 
 
 
@@ -199,15 +199,16 @@ def pygame_main():
             surface.blit(image, position)
             position[1] += linesize
  
-            """image = font.render('button count: {0}'.format(joy.get_numbuttons()), 1, (0,200,0))
-            surface.blit(image, position)
-            position[1] += linesize
+            # image = font.render('button count: {0}'.format(joy.get_numbuttons()), 1, (0,200,0))
+            # surface.blit(image, position)
+            # position[1] += linesize
  
-            for i in range(joy.get_numbuttons()):
-                if joy.get_button(i):
-                    image = font.render('{0}: push'.format(i), 1, (0,200,0))
-                    surface.blit(image, position)
-                    position[1] += linesize"""
+            # for i in range(joy.get_numbuttons()):
+            #     if joy.get_button(i):
+            #         image = font.render('{0}: push'.format(i), 1, (0,200,0))
+            #         surface.blit(image, position)
+            #         position[1] += linesize
+
             image = font.render("Axis: ", 1, (0,200,0))
             surface.blit(image, position)
             position[1] += linesize
@@ -411,25 +412,25 @@ def main():
 
     for i in range(num_axis):
         try: axis_channels[i]
-        except: axis_channels.append(-1)
+        except Exception: axis_channels.append(-1)
 
         try: axis_labels[i]
-        except: axis_labels.append('')
+        except Exception: axis_labels.append('')
 
         try: virtual_types[i]
-        except: virtual_types.append('standard')
+        except Exception: virtual_types.append('standard')
 
         try: real_types[i]
-        except: real_types.append('centered')
+        except Exception: real_types.append('centered')
 
     write_axis_json(["channels", "labels", "virtual_types", "real_types"], [axis_channels, axis_labels, virtual_types, real_types])
 
     for i in range(num_buttons):
         try: buttons_channels[i]
-        except: buttons_channels.append(-1)
+        except Exception: buttons_channels.append(-1)
         
         try: buttons_labels[i]
-        except: buttons_labels.append("")
+        except Exception: buttons_labels.append("")
 
     write_buttons_json(["channels", "labels"], [buttons_channels, buttons_labels])
 
@@ -446,36 +447,36 @@ def main():
 global running
 running = True
 
-fixup_output_positive = 'Fixup succesful, restarting'
-fixup_output_negative = 'Fixup unsucceful, trying next one'
+FIXUP_OUTPUT_POSITIVE = 'Fixup succesful, restarting'
+FIXUP_OUTPUT_NEGATIVE = 'Fixup unsucceful, trying next one'
 
 def fixup_axis_settings_file():
     try: 
         open('axis_settings.json', 'r')
-        print(fixup_output_positive)
-    except:
+        print(FIXUP_OUTPUT_POSITIVE)
+    except Exception:
         open('axis_settings.json', 'w+')
-        print(fixup_output_negative)
+        print(FIXUP_OUTPUT_NEGATIVE)
 
 def fixup_buttons_settings_file():
     try: 
         open('buttons_settings.json', 'r')
-        print(fixup_output_positive)
-    except:
+        print(FIXUP_OUTPUT_POSITIVE)
+    except Exception:
         open('buttons_settings.json', 'w+')
-        print(fixup_output_negative)
+        print(FIXUP_OUTPUT_NEGATIVE)
 
 def fixup_settings_file():
     try:
         open('settings.txt', 'r')
-        print(fixup_output_positive)
-    except:
+        print(FIXUP_OUTPUT_POSITIVE)
+    except Exception:
         open('settings.txt', 'w+')
-        print(fixup_output_negative)
+        print(FIXUP_OUTPUT_NEGATIVE)
 
 def fixup_no_default_ip():
     set_setting('IP', '127.0.0.1')
-    print(fixup_output_positive)
+    print(FIXUP_OUTPUT_POSITIVE)
 
 
 global fixups_index
@@ -511,9 +512,9 @@ while running:
 
 
 
-""" from subprocess import Popen
-p = Popen(['watch', 'ls']) # something long running
-# ... do other stuff while subprocess is running
-p.terminate() """
+# from subprocess import Popen
+# p = Popen(['watch', 'ls']) # something long running
+# # ... do other stuff while subprocess is running
+# p.terminate()
 
 
