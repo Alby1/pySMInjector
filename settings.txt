@@ -1,2 +1,3 @@
 
 IP:127.0.0.1;
+INJECTOR_EXE:D:/SteamLibrary/steamapps/workshop\content/387990/1771470800/sminject.exe;

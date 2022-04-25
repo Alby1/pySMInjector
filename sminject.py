@@ -9,7 +9,8 @@ import time
 import pygame
 from decimal import Context
 import json
-import sys
+import os
+import wmi
 
 # TODO:
 # buttons support:
@@ -20,11 +21,12 @@ import sys
 
 # prettify GUI: 
 # - show axis value as a bar (better for standard or inverted) or slider/ scrollbar (better for centered) (how?)
-# \ show axis name instead of index (what is shown for unnamed axis, index? should it show both every time?)
-# * show buttons (all of them but change pressed ones with different color or just pressed ones? do I show the button name, index, both or index only for unnamed ones?)
+# | show axis name instead of index (what is shown for unnamed axis, index? should it show both every time?)
+# | show buttons (all of them but change pressed ones with different color or just pressed ones? do I show the button name, index, both or index only for unnamed ones?)
 # - set max axis range (real_max and virtual_max, just like type?)
 # \ "You have no controllers connected" screen
 # - SHOW_ONLY_ACTIVE setting
+# - remove auto fixups (too ruggish)
 
 # polish up code:
 # | put "everything" in a function and call it in a try catch in a while running loop whereas running is the same variable in the inside while loop, so that the program does not quit on error but keeps rebooting (is it a good idea?)
@@ -39,6 +41,17 @@ import sys
 
 
 def startup():
+    running = True
+    # if len(get_setting("INJECTOR_EXE")) <= 0:
+    #     set_setting("INJECTOR_EXE", "null")
+        
+    while running:
+        f = wmi.WMI()
+        for process in f.Win32_Process():
+            if(process.Name == "sminject.exe"):
+                running = False
+            
+    
     global UDP_IP
     global UDP_PORT
     global SOCK
@@ -249,7 +262,7 @@ def pygame_main():
                     red = 200
                     green = 0
 
-                image = font.render(f'{buttons[j].name if buttons[j].name != "" else i}', 1, (red,green,0))
+                image = font.render(f'{i}{" - " if buttons[j].name != "" else ""}{buttons[j].name if buttons[j].name != "" else ""}{" - " if buttons[j].channel >= 0 else ""}{buttons[j].channel if buttons[j].channel >= 0 else ""}', 1, (red,green,0))
                 surface.blit(image, position)
                 position[1] += linesize
                 scrolled_buttons += 1
@@ -283,7 +296,7 @@ class Axis:
     def update_value(self, new_value):
         self.raw_value = new_value
         
-        c = Context(prec = 5)
+        c = Context(prec = 4)
         new_value = c.create_decimal(new_value)
 
         if(self.real_type == 'centered'):
@@ -496,17 +509,19 @@ while running:
     except KeyboardInterrupt:
         running = False
     except Exception as e:
-        fixups_index += 1
-        print(f'Error occurred, trying automatic fixup n.{fixups_index}')
-
+        running = False
         print(traceback.format_exc())
+        # fixups_index += 1
+        # print(f'Error occurred, trying automatic fixup n.{fixups_index}')
 
-        try:
-            fixups[fixups_index]()
-        except:
-            running = False
-            #print(e)
-            print('Automatic error fixup unavailable. Quitting program...')
+        # print(traceback.format_exc())
+
+        # try:
+        #     fixups[fixups_index]()
+        # except:
+        #     running = False
+        #     #print(e)
+        #     print('Automatic error fixup unavailable. Quitting program...')
             
 
 
